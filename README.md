@@ -32,7 +32,7 @@ curl -fsSL https://raw.githubusercontent.com/rikby/mdt-git-worktree-alias/main/i
 
 ```bash
 # Configure worktree location (one-time setup)
-git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
+git config --global worktree.defaultPath "../{project_dir}-{worktree_name}"
 
 # Create a worktree for ticket 101
 git wt 101
