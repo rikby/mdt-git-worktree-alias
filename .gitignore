@@ -1,0 +1,30 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor backups & swap files
+*~
+*.swp
+*.swo
+.*.sw*
+
+# Git worktree directories (default path from git wt alias)
+.gitWT/
+
+# Test artifacts
+.bash_coverage/
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
+draft.txt
+
+# Claude Code local settings (optional - comment out if you want to track these)
+.claude/settings.local.json

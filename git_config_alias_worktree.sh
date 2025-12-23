@@ -53,7 +53,12 @@ git config --global alias.wt '!f() {
         echo "To set locally:  git config worktree.defaultPath \"~/worktrees/{worktree_name}\""
         echo ""
 
-        read -p "Set global config to default (.gitWT/{worktree_name})? [Y/n] " response
+        # Support WT_TEST_RESPONSE for automated testing
+        local response="${WT_TEST_RESPONSE:-}"
+        if [[ -z "$response" ]]; then
+            read -p "Set global config to default (.gitWT/{worktree_name})? [Y/n] " response
+        fi
+
         if [[ "$response" =~ ^[Yy]?$ ]] || [ -z "$response" ]; then
             git config --global worktree.defaultPath ".gitWT/{worktree_name}"
             default_path=".gitWT/{worktree_name}"
