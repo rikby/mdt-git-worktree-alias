@@ -173,6 +173,13 @@ assert_dir_exists() {
     fi
 }
 
+refute_dir_exists() {
+    if [[ -d "$1" ]]; then
+        echo "Assertion failed: directory '$1' should not exist" >&2
+        return 1
+    fi
+}
+
 assert_file_exists() {
     if [[ ! -f "$1" ]]; then
         echo "Assertion failed: file '$1' does not exist" >&2

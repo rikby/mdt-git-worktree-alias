@@ -155,17 +155,19 @@ teardown() {
     create_mdt_config "$TEST_REPO_DIR" "WTA"
 
     # Clear config
+    git_test config --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --unset worktree.defaultPath 2>/dev/null || true
+    git_test config --global --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --global --unset worktree.defaultPath 2>/dev/null || true
 
     # Run with WT_TEST_RESPONSE to auto-accept the default config
     WT_TEST_RESPONSE="y" run git_test wt 555 2>&1 || true
 
     # Should show warning about missing config
-    assert_output --partial "worktree.defaultPath is not configured"
+    assert_output --partial "worktree.wt.defaultPath is not configured"
 
     # Should create worktree after setting default config
-    assert_output --partial "Set global worktree.defaultPath"
+    assert_output --partial "Set global worktree.wt.defaultPath"
     assert_output --partial "Created worktree"
 
     # Cleanup

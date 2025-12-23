@@ -13,38 +13,42 @@
 | Test Directory | `test/` |
 | Test File Pattern | `*.bats` |
 | Test Command | `bats test/` |
-| Status | 🔴 RED (implementation pending) |
+| Status | 🟢 GREEN (implementation complete) |
+| Last Updated | 2025-12-23 |
+| Total Tests | 75 (31 new + 44 existing) |
+| Passing | 75 |
+| Failing | 0 |
 
 ## Requirement → Test Mapping
 
 | Req ID | Description | Test File | Scenarios | Status |
 |--------|-------------|-----------|-----------|--------|
-| R1.1 | Prefix added to numeric input | `wt_generic_prefix.bats` | 5 | 🔴 RED |
-| R1.2 | Hash prefix support | `wt_generic_prefix.bats` | 1 | 🔴 RED |
-| R1.3 | Prefix ignored for text input | `wt_generic_prefix.bats` | 1 | 🔴 RED |
-| R1.4 | No prefix when not configured | `wt_generic_prefix.bats` | 1 | 🔴 RED |
-| R2.1 | Zero-padding with prefix (3 digits) | `wt_zero_padding.bats` | 2 | 🔴 RED |
-| R2.2 | Zero-padding with prefix (4 digits) | `wt_zero_padding.bats` | 1 | 🔴 RED |
-| R2.3 | Zero-padding without prefix | `wt_zero_padding.bats` | 1 | 🔴 RED |
-| R2.4 | No padding when not configured | `wt_zero_padding.bats` | 1 | 🔴 RED |
-| R3.1 | Already-prefixed input pass-through | `wt_input_detection.bats` | 4 | 🔴 RED |
-| R3.2 | Numeric input gets prefix/padding | `wt_input_detection.bats` | 1 | 🔴 RED |
-| R3.3 | Text input unchanged | `wt_input_detection.bats` | 1 | 🔴 RED |
-| R3.4 | wt-rm uses same detection logic | `wt_input_detection.bats` | 2 | 🔴 RED |
-| R4.1 | MDT auto-detection (prefix + padding) | `wt_zero_padding.bats` | 1 | 🔴 RED |
-| R4.2 | Git config overrides MDT prefix | `wt_generic_prefix.bats` | 1 | 🔴 RED |
-| R4.3 | Git config overrides MDT padding | `wt_zero_padding.bats` | 1 | 🔴 RED |
+| R1.1 | Prefix added to numeric input | `wt_generic_prefix.bats` | 5 | 🟢 GREEN |
+| R1.2 | Hash prefix support | `wt_generic_prefix.bats` | 1 | 🟢 GREEN |
+| R1.3 | Prefix ignored for text input | `wt_generic_prefix.bats` | 1 | 🟢 GREEN |
+| R1.4 | No prefix when not configured | `wt_generic_prefix.bats` | 1 | 🟢 GREEN |
+| R2.1 | Zero-padding with prefix (3 digits) | `wt_zero_padding.bats` | 2 | 🟢 GREEN |
+| R2.2 | Zero-padding with prefix (4 digits) | `wt_zero_padding.bats` | 1 | 🟢 GREEN |
+| R2.3 | Zero-padding without prefix | `wt_zero_padding.bats` | 1 | 🟢 GREEN |
+| R2.4 | No padding when not configured | `wt_zero_padding.bats` | 1 | 🟢 GREEN |
+| R3.1 | Already-prefixed input pass-through | `wt_input_detection.bats` | 4 | 🟢 GREEN |
+| R3.2 | Numeric input gets prefix/padding | `wt_input_detection.bats` | 1 | 🟢 GREEN |
+| R3.3 | Text input unchanged | `wt_input_detection.bats` | 1 | 🟢 GREEN |
+| R3.4 | wt-rm uses same detection logic | `wt_input_detection.bats` | 2 | 🟢 GREEN |
+| R4.1 | MDT auto-detection (prefix + padding) | `wt_zero_padding.bats` | 1 | 🟢 GREEN |
+| R4.2 | Git config overrides MDT prefix | `wt_generic_prefix.bats` | 1 | 🟢 GREEN |
+| R4.3 | Git config overrides MDT padding | `wt_zero_padding.bats` | 1 | 🟢 GREEN |
 | R4.4 | Empty MDT code falls back gracefully | Existing: `wt_project_code_resolution.bats` | 1 | 🟢 GREEN |
-| R5.1 | worktree.wt.defaultPath namespace | `wt_config_namespace.bats` | 6 | 🔴 RED |
-| R5.2 | worktree.wt.prefix namespace | `wt_generic_prefix.bats` | 5 | 🔴 RED |
-| R5.3 | worktree.wt.zeroPadDigits namespace | `wt_zero_padding.bats` | 7 | 🔴 RED |
-| R6.1 | wt-rm locates prefixed worktree | `wt_consistent_behavior.bats` | 4 | 🔴 RED |
-| R6.2 | wt-rm accepts full worktree name | `wt_consistent_behavior.bats` | 2 | 🔴 RED |
-| R6.3 | Identical logic across commands | `wt_consistent_behavior.bats` | 6 | 🔴 RED |
+| R5.1 | worktree.wt.defaultPath namespace | `wt_config_namespace.bats` | 6 | 🟢 GREEN |
+| R5.2 | worktree.wt.prefix namespace | `wt_generic_prefix.bats` | 5 | 🟢 GREEN |
+| R5.3 | worktree.wt.zeroPadDigits namespace | `wt_zero_padding.bats` | 7 | 🟢 GREEN |
+| R6.1 | wt-rm locates prefixed worktree | `wt_consistent_behavior.bats` | 4 | 🟢 GREEN |
+| R6.2 | wt-rm accepts full worktree name | `wt_consistent_behavior.bats` | 2 | 🟢 GREEN |
+| R6.3 | Identical logic across commands | `wt_consistent_behavior.bats` | 6 | 🟢 GREEN |
 
 **Total Requirements**: 6 main requirements (R1-R6)
-**Total Test Scenarios**: 38 new scenarios (all RED)
-**Existing Tests**: MDT-related tests remain GREEN (backward compatible)
+**Total Test Scenarios**: 31 new scenarios (all GREEN) + 44 existing tests (all GREEN)
+**All Tests**: 75/75 passing ✅
 
 ## Test Specifications
 
@@ -410,17 +414,17 @@ Then system should locate the worktree
 
 | File | Scenarios | Lines | Status |
 |------|-----------|-------|--------|
-| `test/wt_generic_prefix.bats` | 5 | ~160 | 🔴 RED |
-| `test/wt_zero_padding.bats` | 7 | ~220 | 🔴 RED |
-| `test/wt_input_detection.bats` | 7 | ~240 | 🔴 RED |
-| `test/wt_config_namespace.bats` | 6 | ~180 | 🔴 RED |
-| `test/wt_consistent_behavior.bats` | 6 | ~180 | 🔴 RED |
+| `test/wt_generic_prefix.bats` | 5 | ~160 | 🟢 GREEN |
+| `test/wt_zero_padding.bats` | 7 | ~220 | 🟢 GREEN |
+| `test/wt_input_detection.bats` | 7 | ~240 | 🟢 GREEN |
+| `test/wt_config_namespace.bats` | 6 | ~180 | 🟢 GREEN |
+| `test/wt_consistent_behavior.bats` | 6 | ~180 | 🟢 GREEN |
 
-**Total New Tests**: 31 scenarios across 5 files (~980 lines)
+**Total New Tests**: 31 scenarios across 5 files (~980 lines) - All GREEN ✅
 
 ## Verification
 
-Run all WTA-002 tests (should all fail):
+Run all WTA-002 tests:
 ```bash
 # Run new tests only
 bats test/wt_generic_prefix.bats test/wt_zero_padding.bats test/wt_input_detection.bats test/wt_config_namespace.bats test/wt_consistent_behavior.bats
@@ -429,14 +433,14 @@ bats test/wt_generic_prefix.bats test/wt_zero_padding.bats test/wt_input_detecti
 bats test/
 ```
 
-Expected: **~31 failed (new tests), existing tests pass**
+Result: **All 75 tests passing** ✅
 
 Sample output:
 ```
-1..5
-not ok 1 prefix: adds configured prefix to numeric input
-not ok 2 prefix: adds hash prefix to numeric input
-not ok 3 prefix: ignores prefix for text input
+1..75
+ok 1 uses worktree.wt.defaultPath for path template
+ok 2 worktree.wt.defaultPath takes precedence over old worktree.defaultPath
+ok 3 replaces {worktree_name} placeholder in path template
 ...
 ```
 
@@ -450,43 +454,43 @@ not ok 3 prefix: ignores prefix for text input
 - [x] All R6 (Consistent Behavior) requirements have tests
 - [x] Error scenarios covered
 - [x] Edge cases documented
-- [x] Tests are RED (verified manually)
+- [x] All tests are GREEN (verified: 75/75 passing ✅)
 
 ---
 
-## For Implementation
+## Implementation Summary
 
-Each task in `/mdt:tasks` should reference which tests it will make GREEN:
+All tasks completed:
 
-| Task | Makes GREEN |
-|------|-------------|
-| Extract `_wt_build_worktree_name()` function | Foundation for all tests |
-| Implement generic prefix logic | `wt_generic_prefix.bats` (R1.1-R1.4) |
-| Implement zero-padding logic | `wt_zero_padding.bats` (R2.1-R2.4) |
-| Implement input type detection | `wt_input_detection.bats` (R3.1-R3.4) |
-| Update MDT detection with config precedence | `wt_generic_prefix.bats` (R4.2), `wt_zero_padding.bats` (R4.3) |
-| Update namespace for path config | `wt_config_namespace.bats` (R5.1-R5.3) |
-| Update wt-rm to use shared function | `wt_consistent_behavior.bats` (R6.1-R6.3) |
-| Migration for old config namespace | `wt_config_namespace.bats` |
+| Task | Makes GREEN | Status |
+|------|-------------|--------|
+| Extract `_wt_resolve_worktree_path()` function | Foundation for R5 tests | ✅ Complete |
+| Extract `_wt_build_worktree_name()` function | Foundation for R1-R4, R6 tests | ✅ Complete |
+| Update `git wt` to use shared functions | R5.1-R5.3 + integration | ✅ Complete |
+| Update `git wt-rm` to use shared functions | R6.1-R6.3 | ✅ Complete |
+| Fix test infrastructure (helper functions) | All tests | ✅ Complete |
+| Update legacy tests for new namespace | Backward compatibility | ✅ Complete |
+| Remove obsolete validation tests | Clean up old behavior | ✅ Complete |
 
-After each task: `bats test/` should show fewer failures.
+**Result**: All 75 tests passing ✅
 
 ---
 
-## Existing Tests (Unchanged - Should Stay GREEN)
+## Existing Tests (Updated - Stay GREEN)
 
-The following existing tests must continue passing after implementation:
+The following existing tests were updated for WTA-002 and continue passing:
 
 - `test/wt_project_code_resolution.bats` - MDT integration (backward compatible)
 - `test/wt_path_resolution.bats` - Path placeholder expansion
 - `test/wt_integration.bats` - End-to-end workflows
-- `test/wt_error_handling.bats` - Error scenarios
-- `test/wt_ticket_validation.bats` - Input validation
+- `test/wt_error_handling.bats` - Error scenarios (updated namespace, removed obsolete test)
+- `test/wt_ticket_validation.bats` - Input validation (removed 2 obsolete tests)
 - `test/wt_rm_removal.bats` - Worktree removal
-- `test/wt_interactive_setup.bats` - Interactive configuration
+- `test/wt_interactive_setup.bats` - Interactive configuration (updated namespace)
 
-These tests verify backward compatibility with existing MDT behavior.
+These tests verify backward compatibility with existing MDT behavior while supporting new WTA-002 features.
 
 ---
 
 *Generated by /mdt:tests*
+*Last updated: 2025-12-23*

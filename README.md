@@ -8,6 +8,8 @@ Transform complex git worktree commands into simple ticket-based workflows. Crea
 
 - **Quick worktree creation** - `git wt 101` creates isolated workspace for ticket WTA-101
 - **Smart project code detection** - Reads project code from `.mdt-config.toml`
+- **Configurable ticket prefix** - Set custom prefixes for numeric inputs
+- **Zero-padding support** - Format ticket numbers with leading zeros
 - **Flexible path templates** - Configure worktree locations with placeholders
 - **Safe worktree removal** - `git wt-rm 101` removes worktrees with confirmation prompts
 - **Relative and absolute paths** - Store worktrees inside or outside your repository
@@ -30,7 +32,7 @@ curl -fsSL https://raw.githubusercontent.com/rikby/mdt-git-worktree-alias/main/i
 
 ```bash
 # Configure worktree location (one-time setup)
-git config --global worktree.defaultPath ".gitWT/{worktree_name}"
+git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
 # Create a worktree for ticket 101
 git wt 101
@@ -91,6 +93,76 @@ Example output:
 
 ## Configuration
 
+### Worktree Path (NEW namespace)
+
+```bash
+# Recommended: Use new worktree.wt.defaultPath namespace
+git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
+
+# Legacy: worktree.defaultPath still supported (with fallback)
+git config --global worktree.defaultPath ".gitWT/{worktree_name}"
+```
+
+### Ticket Prefix and Zero-Padding (NEW)
+
+For non-MDT projects or custom formatting:
+
+```bash
+# Set ticket prefix for numeric inputs
+git config --global worktree.wt.prefix "ABC-"
+git wt 42          # Creates ABC-42
+
+# Set zero-padding for ticket numbers
+git config --global worktree.wt.zeroPadDigits 3
+git wt 7           # Creates ABC-007
+
+# GitHub-style (hash prefix)
+git config --global worktree.wt.prefix "#"
+git wt 42          # Creates #42
+
+# JIRA-style (project key + zero-padding)
+git config --global worktree.wt.prefix "ASD22-"
+git config --global worktree.wt.zeroPadDigits 4
+git wt 7           # Creates ASD22-0007
+```
+
+### MDT Projects (auto-detection)
+
+Projects with `.mdt-config.toml` get automatic prefix + zero-padding:
+
+```toml
+# .mdt-config.toml
+code = "WTA"
+```
+
+```bash
+git wt 12          # Creates WTA-012 (auto)
+```
+
+Git config settings override MDT defaults:
+
+```bash
+git config worktree.wt.prefix "CUSTOM-"
+git wt 12          # Creates CUSTOM-012 (git config wins)
+```
+
+### Input Type Detection
+
+The system intelligently handles different input formats:
+
+```bash
+# Already prefixed - passes through unchanged
+git wt PROJ-123    # Creates PROJ-123
+
+# Pure numeric - applies prefix and zero-padding
+git wt 42          # Creates ABC-042 (with prefix="ABC-", zeroPadDigits=3)
+
+# Text input - passes through unchanged (prefix ignored)
+git wt feature-login  # Creates feature-login
+```
+
+### Placeholders
+
 | Placeholder | Description | Example |
 |-------------|-------------|---------|
 | `{worktree_name}` | Branch/worktree name | WTA-123 |
@@ -99,6 +171,7 @@ Example output:
 ## Resources
 
 - [Comprehensive Documentation](git-wt-manual.md)
+- [Release Notes & Migration Guide](RELEASE_NOTES.md)
 - [MDT Ticket System](https://github.com/andkirby/markdown-ticket)
 - [Report Issues](https://github.com/rikby/mdt-worktree-alias/issues)
 

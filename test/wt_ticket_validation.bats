@@ -22,43 +22,6 @@ teardown() {
 
 # Feature: Ticket Number Format Validation
 
-@test "error: rejects input without 3-digit ticket number" {
-    # Given: git wt command with invalid format
-    # When: executed with non-numeric input
-    # Then: should exit with code 3 and show error
-
-    TEST_REPO_DIR=$(mktemp -d)
-    create_test_repo "$TEST_REPO_DIR"
-    cd "$TEST_REPO_DIR" || return 1
-
-    create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
-
-    # Use git_test which uses isolated HOME with aliases installed
-    run git_test wt abc 2>&1 || true
-
-    assert_failure
-    assert_output --partial "Must include 3-digit ticket number"
-}
-
-@test "error: rejects input with 2-digit number" {
-    # Given: git wt command
-    # When: executed with 2-digit number
-    # Then: should exit with code 3
-
-    TEST_REPO_DIR=$(mktemp -d)
-    create_test_repo "$TEST_REPO_DIR"
-    cd "$TEST_REPO_DIR" || return 1
-
-    create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
-
-    run git_test wt 12 2>&1 || true
-
-    assert_failure
-    assert_output --partial "Must include 3-digit ticket number"
-}
-
 @test "error: rejects input with 4-digit number" {
     # Given: git wt command
     # When: executed with 4-digit number (regex checks for 3 consecutive digits)

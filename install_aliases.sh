@@ -1,40 +1,94 @@
-git config --global alias.wt '!f() {
-    worktree="$1"
 
-    if [ -z "$worktree" ]; then
+
+git config --global alias.wt '!f() {
+    # Shared function to resolve worktree path with placeholder substitution
+    _wt_resolve_worktree_path() {
+        local worktree_name="$1"
+        local default_path="$2"
+
+        # Get project directory name (basename of git root)
+        local project_dir="$(basename "$(git rev-parse --show-toplevel)")"
+
+        # Replace {project_dir} placeholder first, then {worktree_name}
+        if [[ "$default_path" == *"{project_dir}"* ]]; then
+            local default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
+        else
+            local default_path_with_project="$default_path"
+        fi
+
+        if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
+            local worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree_name/g")
+        else
+            default_path_with_project="${default_path_with_project%/}"
+            worktree_path="$default_path_with_project/$worktree_name"
+        fi
+
+        # Expand ~ to $HOME
+        worktree_path="${worktree_path/#\~/$HOME}"
+
+        echo "$worktree_path"
+    }
+
+    # Shared function to build worktree name with intelligent input transformation
+    _wt_build_worktree_name() {
+        local input="$1"
+
+        # 1. Check if already prefixed (e.g., PROJ-123, ABC-123)
+        if [[ "$input" =~ ^[A-Z]+-[0-9]+$ ]]; then
+            echo "$input"
+            return
+        fi
+
+        # 2. Check if pure numeric
+        if [[ "$input" =~ ^[0-9]+$ ]]; then
+            # Read git config (check local, then global)
+            local prefix=$(git config worktree.wt.prefix 2>/dev/null || git config --global worktree.wt.prefix 2>/dev/null)
+            local pad_digits=$(git config worktree.wt.zeroPadDigits 2>/dev/null || git config --global worktree.wt.zeroPadDigits 2>/dev/null)
+
+            # If not in git config, check MDT
+            if [ -z "$prefix" ]; then
+                local dot_config="$(git rev-parse --show-toplevel)/.mdt-config.toml"
+                if [ -f "$dot_config" ]; then
+                    local project_code=$(grep "^code = " "$dot_config" | cut -d"=" -f2 | tr -d " \"")
+                    if [ -n "$project_code" ]; then
+                        prefix="${project_code}-"
+                        pad_digits="${pad_digits:-3}"  # Default to 3 for MDT
+                    fi
+                fi
+            fi
+
+            # Apply zero-padding
+            if [ -n "$pad_digits" ]; then
+                input=$(printf "%0${pad_digits}d" "$input")
+            fi
+
+            # Apply prefix
+            if [ -n "$prefix" ]; then
+                input="${prefix}${input}"
+            fi
+        fi
+
+        # 3. Text input (contains letters, no dash-number pattern) - pass through unchanged
+        echo "$input"
+    }
+
+    worktree_input="$1"
+
+    if [ -z "$worktree_input" ]; then
         echo "Usage: git wt <ticket-number>"
         echo "Example: git wt 101"
-        echo "Example: git wt MDT-101"
+        echo "Example: git wt PROJ-101"
         exit 1
     fi
 
-    if [[ ! "$worktree" =~ [0-9][0-9][0-9] ]]; then
-        echo "error: Must include 3-digit ticket number. E.g. \"123\" or \"MDT-123\"" >&2
-        exit 3
-    fi
+    # Build worktree name using shared function
+    worktree=$(_wt_build_worktree_name "$worktree_input")
 
-    ticket_number=$(echo "$worktree" | grep -Eo "[0-9][0-9][0-9]")
-
-    # check integration with https://github.com/andkirby/markdown-ticket
-    if [[ "$worktree" =~ ^[0-9][0-9][0-9]$ ]]; then
-        dot_config="$(git rev-parse --show-toplevel)/.mdt-config.toml"
-        if [ -f "$dot_config" ]; then
-            project_code=$(grep "^code = " "$dot_config" | cut -d"=" -f2 | tr -d " \"")
-            if [ -n "$project_code" ]; then
-                worktree="${project_code}-${ticket_number}"
-            else
-                worktree="${ticket_number}"
-            fi
-        else
-            worktree="${ticket_number}"
-        fi
-    fi
-
-    # Check local config first, then global
-    default_path=$(git config worktree.defaultPath 2>/dev/null || git config --global worktree.defaultPath 2>/dev/null)
+    # Check new namespace first, fall back to old for migration
+    default_path=$(git config worktree.wt.defaultPath 2>/dev/null || git config worktree.defaultPath 2>/dev/null || git config --global worktree.wt.defaultPath 2>/dev/null || git config --global worktree.defaultPath 2>/dev/null)
 
     if [ -z "$default_path" ]; then
-        echo "warning: worktree.defaultPath is not configured" >&2
+        echo "warning: worktree.wt.defaultPath is not configured" >&2
         echo ""
         echo "This setting defines where worktrees are created. Use placeholders: {worktree_name}, {project_dir}"
         echo "If {worktree_name} is not in the path, it will be appended."
@@ -49,8 +103,8 @@ git config --global alias.wt '!f() {
         echo "  - {worktree_name}: The branch/worktree name (e.g., MDT-123)"
         echo "  - {project_dir}: Basename of git repository (e.g., super-mario)"
         echo ""
-        echo "To set globally: git config --global worktree.defaultPath \".gitWT/{worktree_name}\""
-        echo "To set locally:  git config worktree.defaultPath \"~/worktrees/{worktree_name}\""
+        echo "To set globally: git config --global worktree.wt.defaultPath \".gitWT/{worktree_name}\""
+        echo "To set locally:  git config worktree.wt.defaultPath \"~/worktrees/{worktree_name}\""
         echo ""
 
         # Support WT_TEST_RESPONSE for automated testing
@@ -60,9 +114,9 @@ git config --global alias.wt '!f() {
         fi
 
         if [[ "$response" =~ ^[Yy]?$ ]] || [ -z "$response" ]; then
-            git config --global worktree.defaultPath ".gitWT/{worktree_name}"
+            git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
             default_path=".gitWT/{worktree_name}"
-            echo "Set global worktree.defaultPath to: $default_path"
+            echo "Set global worktree.wt.defaultPath to: $default_path"
         else
             worktree_path="$(git rev-parse --show-toplevel)/.gitWT/$worktree"
             parent_dir=$(dirname "$worktree_path")
@@ -74,25 +128,8 @@ git config --global alias.wt '!f() {
         fi
     fi
 
-    # Get project directory name (basename of git root)
-    project_dir="$(basename "$(git rev-parse --show-toplevel)")"
-
-    # Replace {project_dir} placeholder first, then {worktree_name}
-    if [[ "$default_path" == *"{project_dir}"* ]]; then
-        default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
-    else
-        default_path_with_project="$default_path"
-    fi
-
-    if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
-        worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree/g")
-    else
-        default_path_with_project="${default_path_with_project%/}"
-        worktree_path="$default_path_with_project/$worktree"
-    fi
-
-    # Expand ~ to $HOME
-    worktree_path="${worktree_path/#\~/$HOME}"
+    # Resolve worktree path using shared function
+    worktree_path=$(_wt_resolve_worktree_path "$worktree" "$default_path")
 
     if [[ "$worktree_path" == /* ]]; then
         relative_flag="--no-relative-paths"
@@ -122,69 +159,104 @@ git config --global alias.wt '!f() {
     git worktree add $relative_flag "$worktree_path" -b "$worktree"
     echo "Created worktree: $worktree_path"
     echo "Branch: $worktree"
-    echo "Using config: worktree.defaultPath = $default_path"
+    echo "Using config: worktree.wt.defaultPath = $default_path"
 }; f'
 
 git config --global alias.wt-rm '!f() {
+    # Shared function to resolve worktree path with placeholder substitution
+    _wt_resolve_worktree_path() {
+        local worktree_name="$1"
+        local default_path="$2"
+
+        # Get project directory name (basename of git root)
+        local project_dir="$(basename "$(git rev-parse --show-toplevel)")"
+
+        # Replace {project_dir} placeholder first, then {worktree_name}
+        if [[ "$default_path" == *"{project_dir}"* ]]; then
+            local default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
+        else
+            local default_path_with_project="$default_path"
+        fi
+
+        if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
+            local worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree_name/g")
+        else
+            default_path_with_project="${default_path_with_project%/}"
+            worktree_path="$default_path_with_project/$worktree_name"
+        fi
+
+        # Expand ~ to $HOME
+        worktree_path="${worktree_path/#\~/$HOME}"
+
+        echo "$worktree_path"
+    }
+
+    # Shared function to build worktree name with intelligent input transformation
+    _wt_build_worktree_name() {
+        local input="$1"
+
+        # 1. Check if already prefixed (e.g., PROJ-123, ABC-123)
+        if [[ "$input" =~ ^[A-Z]+-[0-9]+$ ]]; then
+            echo "$input"
+            return
+        fi
+
+        # 2. Check if pure numeric
+        if [[ "$input" =~ ^[0-9]+$ ]]; then
+            # Read git config (check local, then global)
+            local prefix=$(git config worktree.wt.prefix 2>/dev/null || git config --global worktree.wt.prefix 2>/dev/null)
+            local pad_digits=$(git config worktree.wt.zeroPadDigits 2>/dev/null || git config --global worktree.wt.zeroPadDigits 2>/dev/null)
+
+            # If not in git config, check MDT
+            if [ -z "$prefix" ]; then
+                local dot_config="$(git rev-parse --show-toplevel)/.mdt-config.toml"
+                if [ -f "$dot_config" ]; then
+                    local project_code=$(grep "^code = " "$dot_config" | cut -d"=" -f2 | tr -d " \"")
+                    if [ -n "$project_code" ]; then
+                        prefix="${project_code}-"
+                        pad_digits="${pad_digits:-3}"  # Default to 3 for MDT
+                    fi
+                fi
+            fi
+
+            # Apply zero-padding
+            if [ -n "$pad_digits" ]; then
+                input=$(printf "%0${pad_digits}d" "$input")
+            fi
+
+            # Apply prefix
+            if [ -n "$prefix" ]; then
+                input="${prefix}${input}"
+            fi
+        fi
+
+        # 3. Text input (contains letters, no dash-number pattern) - pass through unchanged
+        echo "$input"
+    }
+
     worktree="$1"
 
     if [ -z "$worktree" ]; then
         echo "Usage: git wt-rm <ticket-number>"
         echo "Example: git wt-rm 101"
-        echo "Example: git wt-rm MDT-101"
+        echo "Example: git wt-rm PROJ-101"
         exit 1
     fi
 
-    if [[ ! "$worktree" =~ [0-9][0-9][0-9] ]]; then
-        echo "error: Must include 3-digit ticket number. E.g. \"123\" or \"MDT-123\"" >&2
-        exit 3
-    fi
+    # Build worktree name using shared function (same as wt)
+    worktree=$(_wt_build_worktree_name "$worktree")
 
-    ticket_number=$(echo "$worktree" | grep -Eo "[0-9][0-9][0-9]")
-
-    # check integration with https://github.com/andkirby/markdown-ticket
-    if [[ "$worktree" =~ ^[0-9][0-9][0-9]$ ]]; then
-        dot_config="$(git rev-parse --show-toplevel)/.mdt-config.toml"
-        if [ -f "$dot_config" ]; then
-            project_code=$(grep "^code = " "$dot_config" | cut -d"=" -f2 | tr -d " \"")
-            if [ -n "$project_code" ]; then
-                worktree="${project_code}-${ticket_number}"
-            else
-                worktree="${ticket_number}"
-            fi
-        else
-            worktree="${ticket_number}"
-        fi
-    fi
-
-    # Check local config first, then global
-    default_path=$(git config worktree.defaultPath 2>/dev/null || git config --global worktree.defaultPath 2>/dev/null)
+    # Check new namespace first, fall back to old for migration
+    default_path=$(git config worktree.wt.defaultPath 2>/dev/null || git config worktree.defaultPath 2>/dev/null || git config --global worktree.wt.defaultPath 2>/dev/null || git config --global worktree.defaultPath 2>/dev/null)
 
     if [ -z "$default_path" ]; then
-        echo "warning: worktree.defaultPath is not configured" >&2
+        echo "warning: worktree.wt.defaultPath is not configured" >&2
         echo "Using default path: .gitWT/{worktree_name}" >&2
         default_path=".gitWT/{worktree_name}"
     fi
 
-    # Get project directory name (basename of git root)
-    project_dir="$(basename "$(git rev-parse --show-toplevel)")"
-
-    # Replace {project_dir} placeholder first, then {worktree_name}
-    if [[ "$default_path" == *"{project_dir}"* ]]; then
-        default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
-    else
-        default_path_with_project="$default_path"
-    fi
-
-    if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
-        worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree/g")
-    else
-        default_path_with_project="${default_path_with_project%/}"
-        worktree_path="$default_path_with_project/$worktree"
-    fi
-
-    # Expand ~ to $HOME
-    worktree_path="${worktree_path/#\~/$HOME}"
+    # Resolve worktree path using shared function
+    worktree_path=$(_wt_resolve_worktree_path "$worktree" "$default_path")
 
     if [[ "$worktree_path" == /* ]]; then
         # Absolute path, use as-is

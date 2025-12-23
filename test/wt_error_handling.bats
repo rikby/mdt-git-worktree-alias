@@ -31,7 +31,7 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
+    git_test config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
     # Create existing worktree directory manually
     mkdir -p "$TEST_REPO_DIR/.gitWT/WTA-123"
@@ -57,7 +57,7 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
+    git_test config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
     # Create a branch without worktree
     git_test checkout -q -b WTA-123
@@ -84,7 +84,7 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
+    git_test config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
     git_test checkout -q -b WTA-124
     git_test checkout -q -
@@ -99,8 +99,8 @@ teardown() {
     git_test branch -D WTA-124 2>/dev/null || true
 }
 
-@test "error: missing worktree.defaultPath config" {
-    # Given: no worktree.defaultPath configured
+@test "error: missing worktree.wt.defaultPath config" {
+    # Given: no worktree.wt.defaultPath configured
     # When: running git wt
     # Then: should show warning and offer to set default
 
@@ -111,20 +111,22 @@ teardown() {
     create_mdt_config "$TEST_REPO_DIR" "WTA"
 
     # Clear any existing config
+    git_test config --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --unset worktree.defaultPath 2>/dev/null || true
+    git_test config --global --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --global --unset worktree.defaultPath 2>/dev/null || true
 
     # Run with WT_TEST_RESPONSE="n" to decline the prompt
     WT_TEST_RESPONSE="n" run git_test wt 555 2>&1 || true
 
     # Should show warning about missing config
-    assert_output --partial "worktree.defaultPath is not configured"
+    assert_output --partial "worktree.wt.defaultPath is not configured"
     assert_output --partial "git config --global"
-    assert_output --partial "git config worktree.defaultPath"
+    assert_output --partial "git config worktree.wt.defaultPath"
 }
 
 @test "suggests: configuration examples on missing config" {
-    # Given: no worktree.defaultPath configured
+    # Given: no worktree.wt.defaultPath configured
     # When: showing help message
     # Then: should display multiple configuration examples
 
@@ -135,7 +137,9 @@ teardown() {
     create_mdt_config "$TEST_REPO_DIR" "WTA"
 
     # Clear any existing config
+    git_test config --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --unset worktree.defaultPath 2>/dev/null || true
+    git_test config --global --unset worktree.wt.defaultPath 2>/dev/null || true
     git_test config --global --unset worktree.defaultPath 2>/dev/null || true
 
     # Run with WT_TEST_RESPONSE="n" to decline the prompt
@@ -151,24 +155,6 @@ teardown() {
 
     # Should show command examples
     assert_output --partial "git config --global"
-    assert_output --partial "git config worktree.defaultPath"
+    assert_output --partial "git config worktree.wt.defaultPath"
 }
 
-@test "error: invalid ticket number format" {
-    # Given: input without 3-digit ticket number
-    # When: running git wt
-    # Then: should exit with code 3 and show error
-
-    TEST_REPO_DIR=$(mktemp -d)
-    create_test_repo "$TEST_REPO_DIR"
-    cd "$TEST_REPO_DIR" || return 1
-
-    create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
-
-    # Try with invalid input
-    run git_test wt abc 2>&1 || true
-
-    assert_failure
-    assert_output --partial "Must include 3-digit ticket number"
-}

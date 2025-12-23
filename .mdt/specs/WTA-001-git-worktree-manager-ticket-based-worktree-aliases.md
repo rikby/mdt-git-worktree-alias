@@ -1,6 +1,6 @@
 ---
 code: WTA-001
-status: Proposed
+status: Implemented
 dateCreated: 2025-12-22T17:01:34.218Z
 type: Feature Enhancement
 priority: Medium

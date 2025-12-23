@@ -1,6 +1,6 @@
 ---
 code: WTA-002
-status: Proposed
+status: Implemented
 dateCreated: 2025-12-23T07:35:08.028Z
 type: Architecture
 priority: Medium

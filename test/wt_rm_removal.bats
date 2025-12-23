@@ -26,19 +26,27 @@ teardown() {
 
 # Feature: wt-rm Ticket Validation
 
-@test "wt-rm: validates 3-digit ticket number" {
+@test "wt-rm: handles text input" {
     # Given: git wt-rm command
-    # When: executed with non-numeric input
-    # Then: should exit with code 3 and show error
+    # When: executed with text input (feature branch)
+    # Then: should handle as worktree name and remove it
 
     create_mdt_config "$TEST_REPO_DIR" "WTA"
-    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
+    git_test config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
-    # Call actual git wt-rm command with invalid input
-    run git_test wt-rm abc 2>&1 || true
+    # Create a feature branch worktree
+    run git_test wt feature-auth 2>&1 || true
+    git_test show-ref --verify --quiet "refs/heads/feature-auth"
 
-    assert_failure
-    assert_output --partial "Must include 3-digit ticket number"
+    # Call actual git wt-rm command with text input
+    run git_test wt-rm feature-auth <<< "y" 2>&1 || true
+
+    # Should successfully remove the worktree
+    assert_success
+    assert_output --partial "Removed worktree"
+
+    # Verify worktree was actually removed
+    [ ! -d "$TEST_REPO_DIR/.gitWT/feature-auth" ]
 }
 
 @test "wt-rm: extracts ticket number from input" {
@@ -171,7 +179,7 @@ teardown() {
     WT_TEST_RESPONSE="y" run git_test wt-rm 222 2>&1 || true
 
     # Should show warning about missing config
-    assert_output --partial "worktree.defaultPath is not configured"
+    assert_output --partial "worktree.wt.defaultPath is not configured"
     assert_output --partial "Using default path"
 
     # Should still find and remove the worktree

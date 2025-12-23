@@ -7,16 +7,16 @@ Transform complex git worktree management into simple, ticket-based development.
 ### 1. First-time Setup
 ```bash
 # Set your worktree location (choose one):
-git config --global worktree.defaultPath ".gitWT/{worktree_name}"      # Inside repo
-git config --global worktree.defaultPath "~/worktrees/{worktree_name}"  # Outside repo
-git config worktree.defaultPath "~/home/my-project-{worktree_name}" # Custom location
+git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"      # Inside repo
+git config --global worktree.wt.defaultPath "~/worktrees/{worktree_name}"  # Outside repo
+git config worktree.wt.defaultPath "~/home/my-project-{worktree_name}" # Custom location
 
 # NEW: Include project directory name (e.g., super-mario)
-git config --global worktree.defaultPath "/worktrees/{project_dir}-{worktree_name}"
-git config --global worktree.defaultPath "../{project_dir}_{worktree_name}"
+git config --global worktree.wt.defaultPath "/worktrees/{project_dir}-{worktree_name}"
+git config --global worktree.wt.defaultPath "../{project_dir}_{worktree_name}"
 
 # Or set per-repo:
-git config worktree.defaultPath ".gitWT/{worktree_name}"
+git config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 ```
 
 ### 2. Create Worktrees
@@ -109,20 +109,20 @@ Set default worktree location for all repositories:
 
 ```bash
 # Inside repository (recommended)
-git config --global worktree.defaultPath ".gitWT/{worktree_name}"
+git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
 # Outside repository
-git config --global worktree.defaultPath "~/worktrees/{worktree_name}"
+git config --global worktree.wt.defaultPath "~/worktrees/{worktree_name}"
 
 # Custom location with project prefix
-git config --global worktree.defaultPath "~/home/my-project-{worktree_name}"
+git config --global worktree.wt.defaultPath "~/home/my-project-{worktree_name}"
 
 # Using $HOME directly (no ~ expansion needed)
-git config --global worktree.defaultPath "$HOME/worktrees/{worktree_name}"
+git config --global worktree.wt.defaultPath "$HOME/worktrees/{worktree_name}"
 
 # NEW: Include project directory name (e.g., super-mario)
-git config --global worktree.defaultPath "/worktrees/{project_dir}-{worktree_name}"
-git config --global worktree.defaultPath "../{project_dir}_{worktree_name}"
+git config --global worktree.wt.defaultPath "/worktrees/{project_dir}-{worktree_name}"
+git config --global worktree.wt.defaultPath "../{project_dir}_{worktree_name}"
 ```
 
 ### Local Configuration
@@ -131,28 +131,99 @@ Set worktree location for current repository only:
 
 ```bash
 # Relative to repository root
-git config worktree.defaultPath ".gitWT/{worktree_name}"
+git config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
 # Absolute path
-git config worktree.defaultPath "/Users/username/worktrees/{worktree_name}"
+git config worktree.wt.defaultPath "/Users/username/worktrees/{worktree_name}"
 
 # Without placeholder (will append worktree name)
-git config worktree.defaultPath ".gitWT"
+git config worktree.wt.defaultPath ".gitWT"
 
 # NEW: Include project directory name
-git config worktree.defaultPath "../{project_dir}_{worktree_name}"
-git config worktree.defaultPath "~/workspaces/{project_dir}-{worktree_name}"
+git config worktree.wt.defaultPath "../{project_dir}_{worktree_name}"
+git config worktree.wt.defaultPath "~/workspaces/{project_dir}-{worktree_name}"
 ```
 
 ### Project Configuration
 
-Configure project code in `.prj-config.toml`:
+Configure project code in `.mdt-config.toml`:
 
 ```toml
 [project]
 name = "Markdown Ticket"
 code = "MDT"
 cr_path = "docs/CRs"
+```
+
+### Ticket Prefix and Zero-Padding Configuration
+
+Set ticket formatting for numeric inputs:
+
+```bash
+# Set ticket prefix for numeric inputs
+git config --global worktree.wt.prefix "ABC-"
+git wt 42          # Creates ABC-42
+
+# Set zero-padding for ticket numbers
+git config --global worktree.wt.zeroPadDigits 3
+git wt 7           # Creates ABC-007
+
+# GitHub-style (hash prefix)
+git config --global worktree.wt.prefix "#"
+git wt 42          # Creates #42
+
+# JIRA-style (project key + zero-padding)
+git config --global worktree.wt.prefix "ASD22-"
+git config --global worktree.wt.zeroPadDigits 4
+git wt 7           # Creates ASD22-0007
+```
+
+### MDT Projects (auto-detection)
+
+Projects with `.mdt-config.toml` get automatic prefix + zero-padding:
+
+```toml
+# .mdt-config.toml
+code = "WTA"
+```
+
+```bash
+git wt 12          # Creates WTA-012 (auto)
+```
+
+Git config settings override MDT defaults:
+
+```bash
+git config worktree.wt.prefix "CUSTOM-"
+git wt 12          # Creates CUSTOM-012 (git config wins)
+```
+
+### Input Type Detection
+
+The system intelligently handles different input formats:
+
+```bash
+# Already prefixed - passes through unchanged
+git wt PROJ-123    # Creates PROJ-123
+
+# Pure numeric - applies prefix and zero-padding
+git wt 42          # Creates ABC-042 (with prefix="ABC-", zeroPadDigits=3)
+
+# Text input - passes through unchanged (prefix ignored)
+git wt feature-login  # Creates feature-login
+```
+
+### Checking Configuration
+
+```bash
+# Check current configuration
+git config worktree.wt.defaultPath          # Local config
+git config --global worktree.wt.defaultPath # Global config
+git config worktree.wt.prefix              # Ticket prefix
+git config worktree.wt.zeroPadDigits        # Zero-padding digits
+
+# Check all git configs
+git config --list | grep worktree
 ```
 
 ---
@@ -164,24 +235,13 @@ cr_path = "docs/CRs"
 ```bash
 # Create worktree with just ticket number
 git wt 101
-# Output: Creates PRJ-101 if project code is MDT in .prj-config.toml
+# Output: Creates WTA-101 if project code is WTA in .mdt-config.toml
 
 # Create worktree with full ticket name
-git wt PRJ-101
+git wt WTA-101
 
 # Create worktree with custom prefix
 git wt PROJ-123
-```
-
-### Checking Configuration
-
-```bash
-# Check current configuration
-git config worktree.defaultPath          # Local config
-git config --global worktree.defaultPath # Global config
-
-# Check all git configs
-git config --list | grep worktree
 ```
 
 ### Managing Worktrees
@@ -246,7 +306,7 @@ git wt-rm PROJ-123  # Removes PROJ-123 worktree and branch
 - **Error Handling**: Lists available worktrees if target not found
 
 **Removal Process:**
-1. Finds worktree path using `worktree.defaultPath` configuration
+1. Finds worktree path using `worktree.wt.defaultPath` configuration (with fallback to legacy `worktree.defaultPath`)
 2. Confirms removal with user
 3. Removes worktree directory
 4. Optionally deletes the branch if safe
@@ -324,7 +384,7 @@ The script provides clear error messages:
 ```bash
 # Missing ticket number
 $ git wt abc
-error: Must include 3-digit ticket number. E.g. "123" or "PRJ-123"
+error: Must include 3-digit ticket number. E.g. "123" or "TICKET-123"
 
 # Worktree already exists
 $ git wt 101
@@ -333,13 +393,19 @@ To remove it: git worktree remove /path/to/worktree
 
 # Branch exists without worktree
 $ git wt 101
-error: Branch "PRJ-101" already exists but has no worktree
-To create worktree for existing branch: git worktree add /path/to/worktree PRJ-101
+error: Branch "WTA-101" already exists but has no worktree
+To create worktree for existing branch: git worktree add /path/to/worktree WTA-101
 ```
+
+### Migration from worktree.defaultPath
+
+**Note**: The configuration namespace has changed from `worktree.defaultPath` to `worktree.wt.defaultPath`. Existing configurations still work via fallback support.
+
+For migration instructions and breaking changes, see [Release Notes](RELEASE_NOTES.md).
 
 ### Interactive Setup
 
-When `worktree.defaultPath` is not configured, the script:
+When `worktree.wt.defaultPath` is not configured, the script:
 
 1. Shows warning with explanation
 2. Provides examples of different configurations
@@ -355,14 +421,14 @@ When `worktree.defaultPath` is not configured, the script:
 ```bash
 # Initial setup
 cd ~/projects/my-project
-git config --global worktree.defaultPath ".gitWT/{worktree_name}"
+git config --global worktree.wt.defaultPath ".gitWT/{worktree_name}"
 
 # Create worktrees
-git wt 101  # Creates .gitWT/PRJ-101
-git wt 102  # Creates .gitWT/PRJ-102
+git wt 101  # Creates .gitWT/WTA-101
+git wt 102  # Creates .gitWT/WTA-102
 
 # Work on ticket 101
-cd .gitWT/PRJ-101
+cd .gitWT/WTA-101
 # (IDEA automatically has ticket 101 scope)
 ```
 
@@ -371,15 +437,15 @@ cd .gitWT/PRJ-101
 ```bash
 # Setup external location
 mkdir -p ~/workspaces
-git config --global worktree.defaultPath "~/workspaces/{worktree_name}"
+git config --global worktree.wt.defaultPath "~/workspaces/{worktree_name}"
 
 # Create worktree
-git wt 205  # Creates ~/workspaces/PRJ-205
+git wt 205  # Creates ~/workspaces/WTA-205
 
 # List worktrees
 git worktree list
 # ~/projects/my-project           abc1234 [main]
-# ~/workspaces/PRJ-205                 def5678 [PRJ-205]
+# ~/workspaces/WTA-205                 def5678 [WTA-205]
 ```
 
 ### Example 3: Multiple Projects
@@ -387,12 +453,13 @@ git worktree list
 ```bash
 # Project A (MDT prefix)
 cd ~/projects/project-a
-git config worktree.defaultPath ".gitWT/{worktree_name}"
-git wt 001  # Creates .gitWT/PRJ-001
+git config worktree.wt.defaultPath ".gitWT/{worktree_name}"
+git wt 001  # Creates .gitWT/WTA-001
 
 # Project B (PROJ prefix)
 cd ~/projects/project-b
-git config worktree.defaultPath ".gitWT/{worktree_name}"
+git config worktree.wt.prefix "PROJ-"
+git config worktree.wt.defaultPath ".gitWT/{worktree_name}"
 git wt 001  # Creates .gitWT/PROJ-001
 ```
 
@@ -400,15 +467,15 @@ git wt 001  # Creates .gitWT/PROJ-001
 
 ```bash
 # From /projects/super-mario repository
-git config --global worktree.defaultPath "/worktrees/{project_dir}-{worktree_name}"
+git config --global worktree.wt.defaultPath "/worktrees/{project_dir}-{worktree_name}"
 
-# Creates /worktrees/super-mario-PRJ-345
+# Creates /worktrees/super-mario-WTA-345
 git wt 345
 
 # Relative to parent directory
-git config worktree.defaultPath "../{project_dir}_{worktree_name}"
+git config worktree.wt.defaultPath "../{project_dir}_{worktree_name}"
 
-# From /projects/super-mario, creates: /projects/super-mario_PRJ-345
+# From /projects/super-mario, creates: /projects/super-mario_WTA-345
 git wt 345
 ```
 
@@ -416,15 +483,15 @@ git wt 345
 
 ```bash
 # Organized by year
-git config --global worktree.defaultPath "~/worktrees/2025/{worktree_name}"
+git config --global worktree.wt.defaultPath "~/worktrees/2025/{worktree_name}"
 
-# Creates ~/worktrees/2025/PRJ-345
+# Creates ~/worktrees/2025/WTA-345
 git wt 345
 
 # Combine project directory with organization
-git config --global worktree.defaultPath "~/worktrees/{project_dir}/{worktree_name}"
+git config --global worktree.wt.defaultPath "~/worktrees/{project_dir}/{worktree_name}"
 
-# From /projects/super-mario, creates: ~/worktrees/super-mario/PRJ-345
+# From /projects/super-mario, creates: ~/worktrees/super-mario/WTA-345
 git wt 345
 ```
 
@@ -433,16 +500,16 @@ git wt 345
 ```bash
 # Worktree directory deleted but reference remains
 git worktree list
-# ~/.gitWT/PRJ-123  abcdef0 [PRJ-123]
+# ~/.gitWT/WTA-123  abcdef0 [WTA-123]
 
 # Clean up stale reference
 git worktree prune
 
 # Recreate worktree
 git wt 123
-error: Branch "PRJ-123" already exists but has no worktree
+error: Branch "WTA-123" already exists but has no worktree
 # Use the suggested command:
-git worktree add .gitWT/PRJ-123 PRJ-123
+git worktree add .gitWT/WTA-123 WTA-123
 ```
 
 ### Example 7: Worktree Removal with `git wt-rm`
@@ -451,24 +518,75 @@ git worktree add .gitWT/PRJ-123 PRJ-123
 # List worktrees
 git worktree list
 # ~/projects/my-project          abc1234 [main]
-# ~/projects/my-project/.gitWT/PRJ-101  def5678 [PRJ-101]
+# ~/projects/my-project/.gitWT/WTA-101  def5678 [WTA-101]
 
 # Remove by ticket number
 git wt-rm 101
-Found worktree: ~/projects/my-project/.gitWT/PRJ-101
-Branch: PRJ-101
+Found worktree: ~/projects/my-project/.gitWT/WTA-101
+Branch: WTA-101
 
 Remove worktree and branch? [y/N] y
-✓ Removed worktree: ~/projects/my-project/.gitWT/PRJ-101
-Delete branch "PRJ-101"? [y/N] y
-✓ Deleted branch: PRJ-101
+✓ Removed worktree: ~/projects/my-project/.gitWT/WTA-101
+Delete branch "WTA-101"? [y/N] y
+✓ Deleted branch: WTA-101
 ✓ Worktree removal completed
 
 # Try to remove non-existent worktree
 git wt-rm 999
-error: Worktree not found at ~/projects/my-project/.gitWT/PRJ-999
+error: Worktree not found at ~/projects/my-project/.gitWT/WTA-999
 Listing existing worktrees:
 # ~/projects/my-project          abc1234 [main]
+```
+
+### Example 8: GitHub-style Hash Prefixes
+
+```bash
+# Configure GitHub-style ticket numbering
+git config --global worktree.wt.prefix "#"
+git config --global worktree.wt.zeroPadDigits 4
+
+# Create worktrees
+git wt 42       # Creates #0042
+git wt 7        # Creates #0007
+
+# Works with wt-rm too
+git wt-rm 42    # Removes #0042
+```
+
+### Example 9: JIRA-style Project Keys
+
+```bash
+# Configure JIRA-style project with zero-padding
+git config --global worktree.wt.prefix "PROJ-"
+git config --global worktree.wt.zeroPadDigits 5
+
+# Create worktrees
+git wt 123      # Creates PROJ-00123
+git wt 7        # Creates PROJ-00007
+
+# Remove by number or full name
+git wt-rm 123   # Removes PROJ-00123
+git wt-rm PROJ-00123  # Also works
+```
+
+### Example 10: Feature Branch Mode
+
+When working with feature branches (no prefix applied):
+
+```bash
+# Configure for numeric tickets
+git config --global worktree.wt.prefix "TICKET-"
+
+# Numeric inputs get prefix
+git wt 42       # Creates TICKET-42
+
+# Text inputs pass through unchanged
+git wt feature-login   # Creates feature-login
+git wt bugfix-ui       # Creates bugfix-ui
+
+# Removal works with both formats
+git wt-rm 42     # Removes TICKET-42
+git wt-rm feature-login  # Removes feature-login
 ```
 
 ---
