@@ -153,28 +153,33 @@ teardown() {
 
 @test "wt-rm: uses default path when config missing" {
     # Given: no worktree.defaultPath configured
-    # When: resolving path
-    # Then: should use fallback .gitWT/{worktree_name}
+    # When: removing worktree
+    # Then: wt-rm should use default .gitWT/{worktree_name} (non-interactive)
 
     create_mdt_config "$TEST_REPO_DIR" "WTA"
 
-    # Clear config
+    # First, create a worktree with a known path
+    git_test config worktree.defaultPath ".gitWT/{worktree_name}"
+    run git_test wt 222 2>&1 || true
+    [ -d "$TEST_REPO_DIR/.gitWT/WTA-222" ]
+
+    # Clear config to test wt-rm's fallback behavior
     git_test config --unset worktree.defaultPath 2>/dev/null || true
     git_test config --global --unset worktree.defaultPath 2>/dev/null || true
 
-    # Create worktree - should use default path
-    run git_test wt 222 2>&1 || true
+    # Remove worktree - wt-rm should use default path non-interactively
+    WT_TEST_RESPONSE="y" run git_test wt-rm 222 2>&1 || true
 
-    # Verify it used the default path
-    [ -d "$TEST_REPO_DIR/.gitWT/222" ] || [ -d "$TEST_REPO_DIR/.gitWT/WTA-222" ]
+    # Should show warning about missing config
+    assert_output --partial "worktree.defaultPath is not configured"
+    assert_output --partial "Using default path"
 
-    # Cleanup
-    if [ -d "$TEST_REPO_DIR/.gitWT/222" ]; then
-        git_test worktree remove "$TEST_REPO_DIR/.gitWT/222" 2>/dev/null || true
-    fi
-    if [ -d "$TEST_REPO_DIR/.gitWT/WTA-222" ]; then
-        git_test worktree remove "$TEST_REPO_DIR/.gitWT/WTA-222" 2>/dev/null || true
-    fi
+    # Should still find and remove the worktree
+    assert_output --partial "WTA-222"
+    assert_output --partial "Removed worktree"
+
+    # Verify worktree was actually removed
+    [ ! -d "$TEST_REPO_DIR/.gitWT/WTA-222" ]
 }
 
 @test "wt-rm: cancels removal when response is no" {
