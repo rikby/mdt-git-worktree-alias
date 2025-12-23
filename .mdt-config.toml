@@ -1,0 +1,13 @@
+[project]
+ticketsPath = ".mdt/specs"
+id = "worktree-alias"
+name = "worktree alias"
+code = "WTA"
+startNumber = 1
+counterFile = ".mdt-next"
+description = "Git worktree aliases for MDT project"
+repository = "https://github.com/rikby/mdt-git-worktree-alias"
+path = "."
+
+[document]
+excludeFolders = [ ".mdt/specs" ]
