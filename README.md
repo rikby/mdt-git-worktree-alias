@@ -23,9 +23,11 @@ Transform complex git worktree commands into simple ticket-based workflows. Crea
 
 ```bash
 # Download and apply the alias to your git config
-curl -fsSL https://gist.githubusercontent.com/andkirby/e44e984a061a6b61b02249721d11677b/raw/git_config_alias_worktree.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rikby/mdt-git-worktree-alias/main/git_config_alias_worktree.sh | bash
 
-# Or manually copy the script and source it
+# Or clone the repository and source the script
+git clone https://github.com/rikby/mdt-git-worktree-alias.git
+cd mdt-git-worktree-alias
 source git_config_alias_worktree.sh
 ```
 
