@@ -24,7 +24,7 @@ git_test() {
 # Install git wt aliases into isolated environment
 install_wt_aliases() {
     local iso_home="${1:-$ISOLATED_GIT_HOME}"
-    local script_path="${2:-$PROJECT_ROOT/git_config_alias_worktree.sh}"
+    local script_path="${2:-$PROJECT_ROOT/install_aliases.sh}"
 
     if [[ ! -f "$script_path" ]]; then
         echo "Error: Script not found: $script_path" >&2
@@ -196,7 +196,7 @@ _common_setup() {
     create_isolated_git_env "$ISOLATED_GIT_HOME"
 
     # Install git wt aliases into isolated environment
-    install_wt_aliases "$ISOLATED_GIT_HOME" "$PROJECT_ROOT/git_config_alias_worktree.sh"
+    install_wt_aliases "$ISOLATED_GIT_HOME" "$PROJECT_ROOT/install_aliases.sh"
 
     # Export for use in tests
     export PROJECT_ROOT
@@ -259,5 +259,5 @@ EOF
 load_git_wt_functions() {
     # Source the main script to get functions
     # shellcheck source=/dev/null
-    source "$PROJECT_ROOT/git_config_alias_worktree.sh"
+    source "$PROJECT_ROOT/install_aliases.sh"
 }
