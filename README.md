@@ -76,6 +76,19 @@ git wt-rm 101       # Finds and removes WTA-101 worktree and branch
 git worktree list
 ```
 
+## Testing
+
+```bash
+# Run the test suite
+bats test/
+```
+
+Example output:
+```
+...
+47 tests, 0 failures
+```
+
 ## Configuration
 
 | Placeholder | Description | Example |
