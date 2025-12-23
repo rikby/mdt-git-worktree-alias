@@ -207,7 +207,13 @@ git config --global alias.wt-rm '!f() {
     echo "Found worktree: $worktree_path"
     echo "Branch: $worktree"
     echo ""
-    read -p "Remove worktree and branch? [y/N] " response
+
+    # Support WT_TEST_RESPONSE for automated testing
+    local response="${WT_TEST_RESPONSE:-}"
+    if [[ -z "$response" ]]; then
+        read -p "Remove worktree and branch? [y/N] " response
+    fi
+
     if [[ ! "$response" =~ ^[Yy]$ ]]; then
         echo "Cancelled."
         exit 0
@@ -229,7 +235,11 @@ git config --global alias.wt-rm '!f() {
         # Branch exists, check if it has other worktrees
         other_worktrees=$(git worktree list | grep -c "\[$worktree\]")
         if [ "$other_worktrees" -eq 0 ]; then
-            read -p "Delete branch \"$worktree\"? [y/N] " branch_response
+            # Support WT_TEST_RESPONSE for automated testing
+            local branch_response="${WT_TEST_RESPONSE:-}"
+            if [[ -z "$branch_response" ]]; then
+                read -p "Delete branch \"$worktree\"? [y/N] " branch_response
+            fi
             if [[ "$branch_response" =~ ^[Yy]$ ]]; then
                 git branch -D "$worktree"
                 echo "✓ Deleted branch: $worktree"
