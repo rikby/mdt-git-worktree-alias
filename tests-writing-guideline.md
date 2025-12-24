@@ -123,6 +123,32 @@ Verify end-to-end workflows:
 - Multi-step scenarios
 - Configuration interactions
 
+## Testing Automation Support
+
+### Environment Variable Automation
+
+Commands that prompt for user input must support automated testing via `WT_TEST_RESPONSE`. This enables CI/CD testing without interactive input.
+
+**Single prompt**: `WT_TEST_RESPONSE="y"`
+**Multiple prompts**: `WT_TEST_RESPONSE="y:n"` (colon-separated, processed sequentially)
+**Quiet mode**: `--quiet` flag skips all prompts
+
+### Configuration Value Testing
+
+Boolean config settings should accept multiple true/false equivalents. Test all variants:
+
+- **True values**: `true`, `on`, `yes`, `1`
+- **False values**: `false`, `off`, `no`, `0`
+- **Unset**: Verify default behavior when config not set
+
+### Testing Guidelines
+
+1. Always test environment variable support for interactive commands
+2. Test multi-prompt sequences using colon-separated `WT_TEST_RESPONSE` values
+3. Test all config value variants (true/false/on/off/yes/no/1/0)
+4. Test unset config to verify default behavior
+5. Test flag overrides where flags take precedence over config
+
 ## Common Anti-Patterns
 
 ### Testing Implementation Details

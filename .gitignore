@@ -28,3 +28,4 @@ draft.txt
 
 # Claude Code local settings (optional - comment out if you want to track these)
 .claude/settings.local.json
+.claude

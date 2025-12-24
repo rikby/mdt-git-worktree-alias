@@ -25,38 +25,36 @@ dependsOn: WTA-004
 ### Scope
 - **In scope**:
   - Unmerged commit detection before branch deletion
-  - `--merge` flag for automatic merge before deletion
-  - `--force` flag to bypass unmerged protection
-  - Interactive prompt when unmerged commits detected
-  - Merge conflict handling
+  - `--merge` flag for merging into current branch
+  - `--merge-to TARGET` flag for explicit target with checkout workflow
+  - `--delete-unmerged` flag to bypass unmerged protection (renamed from `--force`)
+  - `--quiet` flag for non-interactive automation
+  - `worktree.wt.autoMerge` config for auto-merge (default: false, accepts: true/on/yes/1)
+  - Interactive prompt when unmerged commits detected (if auto-merge not enabled)
+  - Merge conflict handling (Git default - preserve for resolution)
 - **Out of scope**:
   - Changes to `git wt` (worktree creation)
   - Remote branch operations
   - Worktree path resolution logic
+## Architecture Design
+> **Extracted**: Complex architecture — see [architecture.md](./architecture.md)
 
-## 2. Desired Outcome
+**Summary**:
+- Pattern: Command Workflow with Flag Modulation
+- Components: 6 (Flag Parser, Unmerged Detector, Merge Orchestrator, Branch Deleter, Prompt Handler, main logic)
+- Key constraint: CurrentMerge reached via `--merge` OR `autoMerge=true|on|yes|1` (default: false)
 
-### Success Conditions
-- When `wt-rm` detects unmerged commits, it must prompt user before deleting branch
-- When user responds with `y*` (case-insensitive), system must merge the branch
-- When user responds with `n*` (case-insensitive), branch must be preserved
-- When `--merge` flag provided, system must perform merge without prompting
-- When `--force` flag provided, system must skip unmerged protection checks
-- When merge succeeds, branch must be deleted
-- When merge fails (conflicts), system must stop and preserve worktree/branch
+**Key Decisions**:
+- `--merge` — Merge into current branch (no checkout needed)
+- `--merge-to TARGET` — Explicit target with checkout workflow
+- `--delete-unmerged` — Bypass merge protection (renamed from `--force` for clarity)
+- `--quiet` — Skip all prompts for automation
+- `worktree.wt.autoMerge` — Config enabling same behavior as `--merge` (default: false, accepts: true/on/yes/1)
+- Git default conflict handling — Leave worktree in conflicted state for manual resolution
 
-### Constraints
-- Must maintain backward compatibility with existing `wt-rm` usage
-- Must respect `WT_TEST_RESPONSE` environment variable for automated testing
-- Must use same path resolution logic as current implementation
-- Must preserve existing confirmation prompts for worktree removal
-- Must not change behavior for branches without unmerged commits
-
-### Non-Goals
-- Not adding rebase capability (only merge)
-- Not handling remote branch deletion
-- Not modifying the `git wt` command
-
+**Extension Rule**: To add new flag, add parsing in `_wt_parse_flags()` (limit 30 lines) and behavior case in main logic (limit 80 lines).
+## Desired Outcome
+(This section removed during clarification - content was under Open Questions)
 ## 3. Open Questions
 
 | Area | Question | Constraints |
@@ -82,17 +80,18 @@ dependsOn: WTA-004
 - Exit codes for different failure scenarios
 
 ## 4. Acceptance Criteria
-
 ### Functional (Outcome-focused)
-- [ ] `git wt-rm 123` detects unmerged commits and prompts user
-- [ ] User responding `y` or `yes` (case-insensitive) triggers merge operation
+- [ ] `git wt-rm 123` detects unmerged commits and prompts user (when autoMerge=false, no --merge flag)
+- [ ] User responding `y` or `yes` (case-insensitive) triggers merge into current branch
 - [ ] User responding `n` or `no` (case-insensitive) preserves branch
-- [ ] `git wt-rm --merge 123` performs merge without prompting
-- [ ] `git wt-rm --force 123` deletes branch regardless of unmerged status
+- [ ] `git wt-rm --merge 123` merges into current branch without prompting
+- [ ] `git wt-rm --merge-to main 123` switches to main, merges, switches back
+- [ ] `git wt-rm --delete-unmerged 123` deletes branch regardless of unmerged status
+- [ ] `git wt-rm --quiet 123` uses defaults without prompting
+- [ ] When `worktree.wt.autoMerge=true`, auto-merge behaves as if `--merge` was passed
 - [ ] Successful merge results in branch deletion
 - [ ] Failed merge (conflicts) preserves worktree and branch with error message
 - [ ] Branches without unmerged commits behave identically to current implementation
-
 ### Non-Functional
 - [ ] Exit code 0 when operation completes successfully
 - [ ] Exit code non-zero when operation fails
@@ -100,25 +99,54 @@ dependsOn: WTA-004
 - [ ] No changes to behavior when no unmerged commits exist
 
 ### Edge Cases
-- What happens when merge target branch does not exist
-- What happens when worktree has uncommitted changes
-- What happens when user is currently inside the worktree being removed
-- What happens when multiple worktrees reference the same branch
-- What happens when branch is already deleted but worktree remains
-- What happens when merge target has unrelated conflicts
-
+- [ ] Merge target branch does not exist → error message, branch preserved
+- [ ] Worktree has uncommitted changes → Git error, worktree preserved
+- [ ] User currently inside worktree being removed → error message, abort
+- [ ] Multiple worktrees reference same branch → only delete if no other worktrees
+- [ ] Branch already deleted but worktree remains → remove worktree only
+- [ ] Merge target has unrelated conflicts → Git default (conflicted state)
+- [ ] `--merge` when not on target branch → error "not on target branch"
+- [ ] `--merge` + `--delete-unmerged` together → error "conflicting flags"
+### Requirements Specification
+- [`requirements.md`](./requirements.md) — EARS-formatted behavioral requirements
 ## 5. Verification
-
 ### How to Verify Success
 - **Manual verification**: 
   - Create feature branch with commits not in main
-  - Run `git wt-rm <ticket>` and verify prompt appears
-  - Test `y` response: verify merge happens, branch deletes
+  - Run `git wt-rm <ticket>` and verify prompt appears (mergeOn=false)
+  - Test `y` response: verify merge into current branch, branch deletes
   - Test `n` response: verify branch preserved
-  - Test `--merge` flag: verify automatic merge and deletion
-  - Test `--force` flag: verify deletion without prompts
+  - Test `--merge` flag: verify merge into current branch without prompting
+  - Test `--merge-to main` flag: verify checkout workflow, merge, branch deletes
+  - Test `--delete-unmerged` flag: verify deletion without prompts
+  - Test `--quiet` flag: verify no prompts, respects mergeOn config
   - Test merge conflict: verify worktree preserved, error shown
 - **Automated verification**:
   - Use `WT_TEST_RESPONSE` to simulate user input
-  - Verify exit codes for each scenario
+  - Verify exit codes: 0 (success), 1 (general error), 2 (merge failed), 3 (invalid flags)
   - Verify branch state after each operation
+
+### Session 2025-12-24
+- Q: Architecture renamed --force to --delete-unmerged. Should acceptance criteria use the new name? → A: Use --delete-unmerged
+- Q: Acceptance criteria say '--merge 123' but architecture specifies '--merge TARGET 123'. Which is correct? → A: Support both. --merge (into the current branch), --merge-to TARGET <- requires branch name. BUT: is it even possible to do merge without activating a target branch?
+- Q: Should we support both --merge (current branch) and --merge-to TARGET (explicit) merge modes? → A: Support both, but worktree.wt.mergeOn = true, default: false. If Auto-merge is ON, it's simply replacement for passing --merge.
+- Q: Should worktree.wt.mergeOn default to true or false? → A: false (safer)
+- Q: Section 'Desired Outcome' is empty but 'Open Questions' has content. Fix structure? → A: Remove empty
+- Q: Config naming - mergeOn vs autoMerge? → A: Use autoMerge. Logic: --merge OR autoMerge=true|on|yes|1 → CurrentMerge, default: false
+
+**Applied Updates:**
+- Updated Scope: Changed `--force` to `--delete-unmerged`, added `--merge`, `--merge-to TARGET`, `--quiet` flags, specified `autoMerge` config (default: false, accepts: true/on/yes/1)
+- Updated Functional acceptance criteria: Replaced `--force` with `--delete-unmerged`, added `--merge` and `--merge-to` cases, clarified auto-merge behavior
+- Updated Edge Cases: Added specific scenarios for `--merge` usage, flag conflicts, error conditions
+- Updated Verification: Reflects new flag names and exit codes
+- Removed empty "Desired Outcome" section (content was under "Open Questions")
+- Updated architecture.md: Changed all `mergeOn` references to `autoMerge`, updated state flows to show `--merge OR autoMerge=true` → CurrentMerge
+- Updated config reading pattern to accept `true|on|yes|1` as true values
+
+**Key Architecture Clarifications:**
+1. Two merge modes: `--merge` (into current branch) and `--merge-to TARGET` (with checkout workflow)
+2. Config name: `autoMerge` (not `mergeOn`)
+3. Config default: `false` (safer, fail-safe)
+4. Config accepted values: `true`, `on`, `yes`, `1` (all enable auto-merge)
+5. CurrentMerge state reached via: `--merge` flag OR `autoMerge=true|on|yes|1`
+6. When auto-merge enabled, behaves identically to `--merge` flag (merge into current branch)
