@@ -281,8 +281,17 @@ git config --global alias.wt-rm '!f() {
     echo ""
 
     # Support WT_TEST_RESPONSE for automated testing
+    # Reads first line and updates WT_TEST_RESPONSE for sequential prompts
     local response="${WT_TEST_RESPONSE:-}"
-    if [[ -z "$response" ]]; then
+    if [[ -n "$response" ]]; then
+        # Read first line for current prompt
+        response=$(echo "$response" | head -n 1)
+        # Update WT_TEST_RESPONSE to remove consumed line for next prompt
+        export WT_TEST_RESPONSE=$(echo "${WT_TEST_RESPONSE}" | tail -n +2)
+    elif [ "${WT_TEST_RESPONSE+isset}" = "isset" ]; then
+        # WT_TEST_RESPONSE is set but empty - treat as "no" to avoid hang in tests
+        response="n"
+    else
         read -p "Remove worktree and branch? [y/N] " response
     fi
 
@@ -308,12 +317,21 @@ git config --global alias.wt-rm '!f() {
         other_worktrees=$(git worktree list | grep -c "\[$worktree\]")
         if [ "$other_worktrees" -eq 0 ]; then
             # Support WT_TEST_RESPONSE for automated testing
+            # Reads first line and updates WT_TEST_RESPONSE for sequential prompts
             local branch_response="${WT_TEST_RESPONSE:-}"
-            if [[ -z "$branch_response" ]]; then
+            if [[ -n "$branch_response" ]]; then
+                # Read first line for current prompt
+                branch_response=$(echo "$branch_response" | head -n 1)
+                # Update WT_TEST_RESPONSE to remove consumed line for next prompt
+                export WT_TEST_RESPONSE=$(echo "${WT_TEST_RESPONSE}" | tail -n +2)
+            elif [ "${WT_TEST_RESPONSE+isset}" = "isset" ]; then
+                # WT_TEST_RESPONSE is set but empty - treat as "no" to avoid hang in tests
+                branch_response="n"
+            else
                 read -p "Delete branch \"$worktree\"? [y/N] " branch_response
             fi
             if [[ "$branch_response" =~ ^[Yy]$ ]]; then
-                git branch -D "$worktree"
+                git branch -d "$worktree"
                 echo "✓ Deleted branch: $worktree"
             else
                 echo "Branch \"$worktree\" kept"
