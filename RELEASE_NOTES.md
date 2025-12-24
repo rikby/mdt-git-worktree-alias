@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.2.1 (2025-12-24)
+
+### Bug Fixes
+
+- **Safe branch deletion** - `wt-rm` now uses Git's safe delete (`git branch -d`) instead of force delete (`git branch -D`)
+  - Branches with unmerged commits are now preserved instead of being silently deleted
+  - Git's standard "not fully merged" error is displayed when deletion is blocked
+  - You can still force delete manually with `git branch -D <branch>` if needed
+
+This change protects you from accidental data loss when removing worktrees that contain unique commits you haven't merged yet.
+
+---
+
 ## v0.2.0 (2025-12-23)
 
 **Generic Configuration Model** - Decoupled from MDT-specific integration, now supports any ticket system.

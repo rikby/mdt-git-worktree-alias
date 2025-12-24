@@ -78,6 +78,8 @@ git wt-rm 101       # Finds and removes WTA-101 worktree and branch
 git worktree list
 ```
 
+**Note**: `wt-rm` uses safe branch deletion. If a branch has unmerged commits, the branch is preserved and Git displays a "not fully merged" message. To force delete, use `git branch -D <branch>` manually.
+
 ## Testing
 
 ```bash
