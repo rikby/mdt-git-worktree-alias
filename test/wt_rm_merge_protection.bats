@@ -378,11 +378,11 @@ teardown() {
     git_test commit -m "Target merge test"
     cd "$TEST_REPO_DIR" || return 1
 
-    # Get current branch (should be main)
+    # Get current branch name
     local current_branch=$(git_test branch --show-current)
 
-    # Remove with --merge-to main
-    WT_TEST_RESPONSE="y" run git_test wt-rm --merge-to main 111 2>&1 || true
+    # Remove with --merge-to to the current branch
+    WT_TEST_RESPONSE="y" run git_test wt-rm --merge-to "$current_branch" 111 2>&1 || true
 
     # Should execute merge
     assert_output --partial "merging"
@@ -638,7 +638,8 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     # Remove with --delete-unmerged - should skip merge
-    WT_TEST_RESPONSE="y" run git_test wt-rm --delete-unmerged 119 2>&1 || true
+    # Two 'y' responses: one for worktree removal, one for branch deletion
+    WT_TEST_RESPONSE=$'y\ny' run git_test wt-rm --delete-unmerged 119 2>&1 || true
 
     # Should NOT merge
     refute_output --partial "merging"
@@ -672,7 +673,8 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     # Remove with --delete-unmerged
-    WT_TEST_RESPONSE="y" run git_test wt-rm --delete-unmerged 120 2>&1 || true
+    # Two 'y' responses: one for worktree removal, one for branch deletion
+    WT_TEST_RESPONSE=$'y\ny' run git_test wt-rm --delete-unmerged 120 2>&1 || true
 
     # Should NOT merge
     refute_output --partial "merging"
@@ -704,7 +706,8 @@ teardown() {
     cd "$TEST_REPO_DIR" || return 1
 
     # Remove with --delete-unmerged
-    WT_TEST_RESPONSE="y" run git_test wt-rm --delete-unmerged 121 2>&1 || true
+    # Two 'y' responses: one for worktree removal, one for branch deletion
+    WT_TEST_RESPONSE=$'y\ny' run git_test wt-rm --delete-unmerged 121 2>&1 || true
 
     # Should NOT show merge prompt
     refute_output --partial "Merge unmerged commits"
