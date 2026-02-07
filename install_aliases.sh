@@ -331,8 +331,9 @@ git config --global alias.wt-rm '!f() {
                 read -p "Delete branch \"$worktree\"? [y/N] " branch_response
             fi
             if [[ "$branch_response" =~ ^[Yy]$ ]]; then
-                git branch -d "$worktree"
-                echo "✓ Deleted branch: $worktree"
+                if git branch -d "$worktree"; then
+                    echo "✓ Deleted branch: $worktree"
+                fi
             else
                 echo "Branch \"$worktree\" kept"
             fi

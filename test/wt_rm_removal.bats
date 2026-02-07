@@ -366,3 +366,45 @@ y" run git_test wt-rm 406 2>&1 || true
     # Cleanup
     git_test branch -D WTA-407 2>/dev/null || true
 }
+
+@test "wt-rm: does NOT show success message when git branch -d fails" {
+    # Given: a worktree with unmerged commits that cause git branch -d to fail
+    # When: user confirms branch deletion but Git rejects it
+    # Then: should NOT show '✓ Deleted branch' message (only show Git's error)
+
+    create_mdt_config "$TEST_REPO_DIR" "WTA"
+    git_test config worktree.wt.defaultPath ".gitWT/{worktree_name}"
+
+    # Create worktree
+    run git_test wt 408 2>&1 || true
+    [ -d "$TEST_REPO_DIR/.gitWT/WTA-408" ]
+
+    # Add unmerged commit (this will cause git branch -d to fail)
+    cd "$TEST_REPO_DIR/.gitWT/WTA-408" || return 1
+    echo "unmerged" > unmerged.txt
+    git_test add unmerged.txt
+    git_test commit -m "Unmerged commit"
+    cd "$TEST_REPO_DIR" || return 1
+
+    # Attempt to remove with branch deletion confirmation
+    # First "y" for worktree removal, second "y" for branch deletion
+    WT_TEST_RESPONSE=$'y\ny' run git_test wt-rm 408 2>&1 || true
+
+    # Worktree should be removed successfully
+    assert_output --partial "Removed worktree"
+    [ ! -d "$TEST_REPO_DIR/.gitWT/WTA-408" ]
+
+    # Git should show its error about unmerged branch
+    assert_output --partial "not fully merged"
+
+    # CRITICAL: Should NOT show success message since deletion failed!
+    # This is the bug we're fixing - the script was showing "✓ Deleted branch"
+    # even when git branch -d failed.
+    refute_output --partial "✓ Deleted branch"
+
+    # Verify branch still exists (was not deleted)
+    git_test show-ref --verify --quiet "refs/heads/WTA-408"
+
+    # Cleanup
+    git_test branch -D WTA-408 2>/dev/null || true
+}
