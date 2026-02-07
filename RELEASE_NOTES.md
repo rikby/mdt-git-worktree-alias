@@ -1,5 +1,16 @@
 # Release Notes
 
+## v0.2.2 (2025-02-07)
+
+### Bug Fixes
+
+- **Accurate deletion feedback** - `wt-rm` no longer shows misleading success messages when branch deletion fails
+  - The success message "✓ Deleted branch" now only appears when the branch is actually deleted
+  - When Git rejects deletion (e.g., unmerged commits), you'll see Git's error message without the confusing success message
+  - This provides clearer feedback about what actually happened during worktree removal
+
+---
+
 ## v0.2.1 (2025-12-24)
 
 ### Bug Fixes
