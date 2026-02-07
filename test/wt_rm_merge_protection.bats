@@ -29,6 +29,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: detects unmerged commits before deletion" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: a worktree with unmerged commits
     # When: wt-rm is executed without merge flags
     # Then: should detect unmerged commits and prompt user
@@ -64,6 +65,7 @@ teardown() {
 }
 
 @test "wt-rm: proceeds with deletion when no unmerged commits" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: a worktree with fully merged commits
     # When: wt-rm is executed
     # Then: should proceed with deletion without merge prompt
@@ -106,6 +108,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: merges when user responds yes to prompt" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits detected
     # When: user responds 'y' or 'yes'
     # Then: should execute merge and delete branch
@@ -144,6 +147,7 @@ teardown() {
 }
 
 @test "wt-rm: preserves branch when user responds no to prompt" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits detected
     # When: user responds 'n' or 'no'
     # Then: should preserve branch and worktree
@@ -181,6 +185,7 @@ teardown() {
 }
 
 @test "wt-rm: respects WT_TEST_RESPONSE environment variable" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits detected
     # When: WT_TEST_RESPONSE is set
     # Then: should use response from variable instead of prompting
@@ -209,6 +214,7 @@ teardown() {
 }
 
 @test "wt-rm: accepts case-insensitive yes responses" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits detected
     # When: user responds with Y, YES, Yes, y, yes
     # Then: should accept all variants as yes
@@ -244,6 +250,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: merges without prompt when --merge flag provided" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits exist
     # When: --merge flag is provided
     # Then: should merge into current branch without prompting
@@ -277,6 +284,7 @@ teardown() {
 }
 
 @test "wt-rm: preserves worktree on merge conflict with --merge flag" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits that will conflict
     # When: --merge flag is provided and merge conflicts
     # Then: should preserve worktree and branch, exit with error code 2
@@ -320,6 +328,7 @@ teardown() {
 }
 
 @test "wt-rm: exits with code 2 on merge failure" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: merge operation fails
     # When: --merge flag is provided
     # Then: should exit with error code 2
@@ -360,6 +369,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: merges to explicit target branch with --merge-to" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits exist
     # When: --merge-to TARGET flag is provided
     # Then: should switch to target, merge, switch back, and delete
@@ -400,6 +410,7 @@ teardown() {
 }
 
 @test "wt-rm: skips branch switch when already on target" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: already on target branch
     # When: --merge-to current_branch flag is provided
     # Then: should merge without switching branches
@@ -431,6 +442,7 @@ teardown() {
 }
 
 @test "wt-rm: errors when target branch does not exist" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits exist
     # When: --merge-to specifies non-existent target
     # Then: should exit with error code 1 and show error
@@ -472,6 +484,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: auto-merges when config is true" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is set to true
     # When: unmerged commits are detected
     # Then: should merge automatically without prompting
@@ -506,6 +519,7 @@ teardown() {
 }
 
 @test "wt-rm: auto-merges when config is 'on'" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is set to 'on'
     # When: unmerged commits are detected
     # Then: should merge automatically
@@ -532,6 +546,7 @@ teardown() {
 }
 
 @test "wt-rm: auto-merges when config is 'yes'" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is set to 'yes'
     # When: unmerged commits are detected
     # Then: should merge automatically
@@ -558,6 +573,7 @@ teardown() {
 }
 
 @test "wt-rm: auto-merges when config is '1'" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is set to '1'
     # When: unmerged commits are detected
     # Then: should merge automatically
@@ -584,6 +600,7 @@ teardown() {
 }
 
 @test "wt-rm: prompts when autoMerge config is false" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is set to false
     # When: unmerged commits are detected
     # Then: should prompt user (not auto-merge)
@@ -618,6 +635,7 @@ teardown() {
 }
 
 @test "wt-rm: flags override autoMerge config" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is true
     # When: --delete-unmerged flag is provided
     # Then: flag should override config and delete without merging
@@ -654,6 +672,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: deletes unmerged branch with --delete-unmerged flag" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits exist
     # When: --delete-unmerged flag is provided
     # Then: should delete branch without merging
@@ -687,6 +706,7 @@ teardown() {
 }
 
 @test "wt-rm: skips merge prompts with --delete-unmerged flag" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: unmerged commits exist
     # When: --delete-unmerged flag is provided
     # Then: should skip merge prompts entirely
@@ -722,6 +742,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: auto-merges in quiet mode when config is true" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is true
     # When: --quiet flag is provided
     # Then: should auto-merge without prompts
@@ -753,6 +774,7 @@ teardown() {
 }
 
 @test "wt-rm: fails in quiet mode when autoMerge is false" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: autoMerge config is false
     # When: --quiet flag is provided and unmerged commits exist
     # Then: should fail without prompting
@@ -791,6 +813,7 @@ teardown() {
 }
 
 @test "wt-rm: skips all prompts in quiet mode" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: any prompts would be shown
     # When: --quiet flag is provided
     # Then: should skip all interactive prompts
@@ -825,6 +848,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: errors on --merge and --merge-to conflict" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: conflicting merge flags
     # When: both --merge and --merge-to are provided
     # Then: should exit with error code 3
@@ -843,6 +867,7 @@ teardown() {
 }
 
 @test "wt-rm: errors on --merge and --delete-unmerged conflict" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: conflicting intent flags
     # When: both --merge and --delete-unmerged are provided
     # Then: should exit with error code 3
@@ -869,6 +894,7 @@ teardown() {
 }
 
 @test "wt-rm: errors on --merge-to and --delete-unmerged conflict" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: conflicting intent flags
     # When: both --merge-to and --delete-unmerged are provided
     # Then: should exit with error code 3
@@ -899,6 +925,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: errors when removing current worktree" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: user is currently in the worktree being removed
     # When: wt-rm is executed
     # Then: should exit with error code 1 and show error
@@ -935,6 +962,7 @@ teardown() {
 }
 
 @test "wt-rm: preserves worktree on merge conflict" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: merge operation conflicts
     # When: merge is attempted
     # Then: should preserve worktree and branch in current state
@@ -976,6 +1004,7 @@ teardown() {
 }
 
 @test "wt-rm: removes worktree when branch already deleted" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: worktree exists but branch is already deleted
     # When: wt-rm is executed
     # Then: should remove worktree only
@@ -1008,6 +1037,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: exits with code 0 on successful removal" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: valid worktree
     # When: wt-rm completes successfully
     # Then: should exit with code 0
@@ -1034,6 +1064,7 @@ teardown() {
 }
 
 @test "wt-rm: exits with code 1 on general error" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: invalid worktree reference
     # When: wt-rm cannot find worktree
     # Then: should exit with code 1
@@ -1049,6 +1080,7 @@ teardown() {
 }
 
 @test "wt-rm: exits with code 3 on invalid flag combination" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: invalid flag combination
     # When: wt-rm is executed with conflicting flags
     # Then: should exit with code 3
@@ -1068,6 +1100,7 @@ teardown() {
 # ============================================================================
 
 @test "wt-rm: behaves identically to current implementation when no unmerged" {
+    skip "WTA-003 feature not implemented yet - merge protection and auto-merge capability"
     # Given: worktree with fully merged commits
     # When: wt-rm is executed without flags
     # Then: should behave identically to current implementation
