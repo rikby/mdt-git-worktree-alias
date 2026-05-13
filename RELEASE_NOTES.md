@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.2.3 (2026-05-13)
+
+### Bug Fixes
+
+- **Registered worktree lookup** - `wt-rm` now finds existing worktrees by branch name when their path does not match `worktree.wt.defaultPath`
+- **Slash branch names** - `wt` and `wt-rm` now handle names like `andkirby/montreal` without corrupting path resolution
+
+---
+
 ## v0.2.2 (2025-02-07)
 
 ### Bug Fixes
