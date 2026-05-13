@@ -11,13 +11,13 @@ git config --global alias.wt '!f() {
 
         # Replace {project_dir} placeholder first, then {worktree_name}
         if [[ "$default_path" == *"{project_dir}"* ]]; then
-            local default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
+            local default_path_with_project="${default_path//\{project_dir\}/$project_dir}"
         else
             local default_path_with_project="$default_path"
         fi
 
         if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
-            local worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree_name/g")
+            local worktree_path="${default_path_with_project//\{worktree_name\}/$worktree_name}"
         else
             default_path_with_project="${default_path_with_project%/}"
             worktree_path="$default_path_with_project/$worktree_name"
@@ -173,13 +173,13 @@ git config --global alias.wt-rm '!f() {
 
         # Replace {project_dir} placeholder first, then {worktree_name}
         if [[ "$default_path" == *"{project_dir}"* ]]; then
-            local default_path_with_project=$(echo "$default_path" | sed "s/{project_dir}/$project_dir/g")
+            local default_path_with_project="${default_path//\{project_dir\}/$project_dir}"
         else
             local default_path_with_project="$default_path"
         fi
 
         if [[ "$default_path_with_project" == *"{worktree_name}"* ]]; then
-            local worktree_path=$(echo "$default_path_with_project" | sed "s/{worktree_name}/$worktree_name/g")
+            local worktree_path="${default_path_with_project//\{worktree_name\}/$worktree_name}"
         else
             default_path_with_project="${default_path_with_project%/}"
             worktree_path="$default_path_with_project/$worktree_name"
@@ -234,6 +234,30 @@ git config --global alias.wt-rm '!f() {
         echo "$input"
     }
 
+    _wt_find_registered_worktree_path() {
+        local branch_name="$1"
+        local current_path=""
+        local line=""
+
+        while IFS= read -r line; do
+            case "$line" in
+                worktree\ *)
+                    current_path="${line#worktree }"
+                    ;;
+                branch\ refs/heads/*)
+                    if [ "${line#branch refs/heads/}" = "$branch_name" ]; then
+                        echo "$current_path"
+                        return 0
+                    fi
+                    ;;
+            esac
+        done <<EOF
+$(git worktree list --porcelain)
+EOF
+
+        return 1
+    }
+
     worktree="$1"
 
     if [ -z "$worktree" ]; then
@@ -269,10 +293,15 @@ git config --global alias.wt-rm '!f() {
 
     # Check if worktree exists
     if [ ! -d "$worktree_path" ]; then
-        echo "error: Worktree not found at $worktree_path" >&2
-        echo "Listing existing worktrees:" >&2
-        git worktree list
-        exit 1
+        registered_worktree_path="$(_wt_find_registered_worktree_path "$worktree")"
+        if [ -n "$registered_worktree_path" ] && [ -d "$registered_worktree_path" ]; then
+            worktree_path="$registered_worktree_path"
+        else
+            echo "error: Worktree not found at $worktree_path" >&2
+            echo "Listing existing worktrees:" >&2
+            git worktree list
+            exit 1
+        fi
     fi
 
     # Confirm removal

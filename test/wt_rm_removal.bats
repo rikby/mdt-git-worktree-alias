@@ -121,6 +121,53 @@ teardown() {
     rmdir "$TEST_WORKTREE_BASE" 2>/dev/null || true
 }
 
+@test "wt-rm: finds registered worktree when path does not match config" {
+    # Given: a worktree whose actual path does not match worktree.wt.defaultPath
+    # When: removing by ticket number
+    # Then: wt-rm should find it from Git's worktree registry by branch name
+
+    TEST_WORKTREE_BASE=$(mktemp -d)
+    create_mdt_config "$TEST_REPO_DIR" "WTA"
+    git_test config worktree.wt.defaultPath "$TEST_REPO_DIR/mismatch-{worktree_name}"
+
+    git_test worktree add "$TEST_WORKTREE_BASE/custom-location" -b WTA-162
+    [ -d "$TEST_WORKTREE_BASE/custom-location" ]
+
+    WT_TEST_RESPONSE="y" run git_test wt-rm 162 2>&1 || true
+
+    assert_success
+    assert_output --partial "$TEST_WORKTREE_BASE/custom-location"
+    assert_output --partial "Removed worktree"
+    [ ! -d "$TEST_WORKTREE_BASE/custom-location" ]
+
+    git_test branch -D WTA-162 2>/dev/null || true
+    rmdir "$TEST_WORKTREE_BASE" 2>/dev/null || true
+}
+
+@test "wt-rm: handles slash branch names without sed path errors" {
+    # Given: a registered worktree for a slash-containing branch name
+    # When: removing by that branch name
+    # Then: wt-rm should not corrupt path resolution or target the main worktree
+
+    TEST_WORKTREE_BASE=$(mktemp -d)
+    git_test config worktree.wt.defaultPath "$TEST_REPO_DIR/mismatch-{worktree_name}"
+
+    git_test worktree add "$TEST_WORKTREE_BASE/montreal" -b andkirby/montreal
+    [ -d "$TEST_WORKTREE_BASE/montreal" ]
+
+    WT_TEST_RESPONSE="y" run git_test wt-rm andkirby/montreal 2>&1 || true
+
+    assert_success
+    refute_output --partial "bad flag in substitute command"
+    refute_output --partial "main working tree"
+    assert_output --partial "$TEST_WORKTREE_BASE/montreal"
+    assert_output --partial "Removed worktree"
+    [ ! -d "$TEST_WORKTREE_BASE/montreal" ]
+
+    git_test branch -D andkirby/montreal 2>/dev/null || true
+    rmdir "$TEST_WORKTREE_BASE" 2>/dev/null || true
+}
+
 # Feature: wt-rm Error Handling
 
 @test "wt-rm: errors when worktree not found" {
